@@ -1,34 +1,45 @@
-import { Pool } from 'pg';
-import dotenv from 'dotenv';
-
-dotenv.config();
+import { Pool, PoolClient, QueryResult, QueryResultRow } from 'pg';
+import env from './env';
 
 export const pool = new Pool({
-  host: process.env.DB_HOST || 'localhost',
-  port: parseInt(process.env.DB_PORT || '5432', 10),
-  database: process.env.DB_NAME || 'staycircle',
-  user: process.env.DB_USER || 'postgres',
-  password: process.env.DB_PASSWORD || undefined,
+  host: env.DB_HOST,
+  port: env.DB_PORT,
+  database: env.DB_NAME,
+  user: env.DB_USER,
+  password: env.DB_PASSWORD,
   max: 20,
   idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 2000,
+  connectionTimeoutMillis: 5000,
 });
 
-pool.on('error', (err) => {
-  console.error('Unexpected error on idle PostgreSQL client:', err);
+pool.on('error', (err: Error) => {
+  console.error('[Database] Unexpected error on idle PostgreSQL client:', err.message);
 });
 
 export const testDbConnection = async (): Promise<boolean> => {
+  let client: PoolClient | null = null;
   try {
-    const client = await pool.connect();
+    client = await pool.connect();
     const result = await client.query('SELECT NOW() AS current_time');
-    client.release();
     console.log(`[Database] PostgreSQL connected successfully. Server time: ${result.rows[0].current_time}`);
     return true;
   } catch (error) {
-    console.error('[Database] PostgreSQL connection failed:', error);
+    const message = error instanceof Error ? error.message : String(error);
+    console.error(`[Database] PostgreSQL connection failed: ${message}`);
+    console.error('[Database] Please verify DB_HOST, DB_PORT, DB_NAME, DB_USER, and DB_PASSWORD.');
     return false;
+  } finally {
+    if (client) {
+      client.release();
+    }
   }
+};
+
+export const query = <T extends QueryResultRow = any>(
+  text: string,
+  params?: any[]
+): Promise<QueryResult<T>> => {
+  return pool.query<T>(text, params);
 };
 
 export default pool;
