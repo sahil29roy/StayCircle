@@ -1,0 +1,45 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Environment variables
+.env
+.env*.local
+**/.env
+**/.env*.local
+
+# Backend build output & logs
+backend/dist/
+dist/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Mobile / Expo build output & tools
+mobile/.expo/
+mobile/web-build/
+mobile/expo-env.d.ts
+mobile/.kotlin/
+mobile/*.orig.*
+mobile/*.jks
+mobile/*.p8
+mobile/*.p12
+mobile/*.key
+mobile/*.mobileprovision
+mobile/.metro-health-check*
+mobile/ios/
+mobile/android/
+
+# TypeScript cache
+*.tsbuildinfo
+
+# OS & Editor files
+.DS_Store
+Thumbs.db
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
