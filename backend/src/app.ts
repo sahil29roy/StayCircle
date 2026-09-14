@@ -6,6 +6,10 @@ import rateLimit from 'express-rate-limit';
 import env from './config/env';
 import healthRoutes from './routes/health.routes';
 import authRoutes from './routes/auth.routes';
+import pgRoutes from './routes/pg.routes';
+import roomRoutes from './routes/room.routes';
+import studentRoutes from './routes/student.routes';
+import joinRequestRoutes from './routes/joinRequest.routes';
 import notFound from './middleware/notFound';
 import errorHandler from './middleware/errorHandler';
 
@@ -43,6 +47,10 @@ app.use('/api', apiLimiter);
 // 5. Mount API Routes
 app.use('/api/health', healthRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/pgs', pgRoutes);
+app.use('/api/rooms', roomRoutes);
+app.use('/api/students', studentRoutes);
+app.use('/api', joinRequestRoutes);
 
 // 6. Handle 404 Unmatched Routes
 app.use(notFound);
