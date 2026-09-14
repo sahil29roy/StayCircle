@@ -1,98 +1,69 @@
-import * as Device from 'expo-device';
-import { Platform, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import React from 'react';
+import { View, StyleSheet, ActivityIndicator } from 'react-native';
+import { Redirect } from 'expo-router';
+import { useAuthStore } from '../store/auth.store';
+import { useTheme } from '../context/theme.context';
+import { Text } from '../components/ui/Text';
+import { spacing } from '../constants/spacing';
 
-import { AnimatedIcon } from '@/components/animated-icon';
-import { HintRow } from '@/components/hint-row';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { WebBadge } from '@/components/web-badge';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+export default function IndexGatekeeper() {
+  const { isInitialized, isAuthenticated, user } = useAuthStore();
+  const { colors } = useTheme();
 
-function getDevMenuHint() {
-  if (Platform.OS === 'web') {
-    return <ThemedText type="small">use browser devtools</ThemedText>;
-  }
-  if (Device.isDevice) {
+  if (!isInitialized) {
     return (
-      <ThemedText type="small">
-        shake device or press <ThemedText type="code">m</ThemedText> in terminal
-      </ThemedText>
+      <View style={[styles.splashContainer, { backgroundColor: colors.background }]}>
+        <View style={styles.brandWrapper}>
+          <Text
+            variant="display"
+            style={[styles.brandTitle, { color: colors.primary }]}
+          >
+            STAYCIRCLE
+          </Text>
+          <Text variant="bodySmall" color="muted" align="center" style={styles.tagline}>
+            Find your stay. Find your circle.
+          </Text>
+        </View>
+        <ActivityIndicator size="small" color={colors.primary} style={styles.loader} />
+      </View>
     );
   }
-  const shortcut = Platform.OS === 'android' ? 'cmd+m (or ctrl+m)' : 'cmd+d';
-  return (
-    <ThemedText type="small">
-      press <ThemedText type="code">{shortcut}</ThemedText>
-    </ThemedText>
-  );
-}
 
-export default function HomeScreen() {
-  return (
-    <ThemedView style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
-        <ThemedView style={styles.heroSection}>
-          <AnimatedIcon />
-          <ThemedText type="title" style={styles.title}>
-            Welcome to&nbsp;Expo
-          </ThemedText>
-        </ThemedView>
+  if (!isAuthenticated || !user) {
+    return <Redirect href="/(auth)/welcome" />;
+  }
 
-        <ThemedText type="code" style={styles.code}>
-          get started
-        </ThemedText>
+  if (user.role === 'STUDENT') {
+    return <Redirect href="/(student)/home" />;
+  }
 
-        <ThemedView type="backgroundElement" style={styles.stepContainer}>
-          <HintRow
-            title="Try editing"
-            hint={<ThemedText type="code">src/app/index.tsx</ThemedText>}
-          />
-          <HintRow title="Dev tools" hint={getDevMenuHint()} />
-          <HintRow
-            title="Fresh start"
-            hint={<ThemedText type="code">npm run reset-project</ThemedText>}
-          />
-        </ThemedView>
+  if (user.role === 'OWNER') {
+    return <Redirect href="/(owner)/dashboard" />;
+  }
 
-        {Platform.OS === 'web' && <WebBadge />}
-      </SafeAreaView>
-    </ThemedView>
-  );
+  return <Redirect href="/(auth)/welcome" />;
 }
 
 const styles = StyleSheet.create({
-  container: {
+  splashContainer: {
     flex: 1,
-    justifyContent: 'center',
-    flexDirection: 'row',
-  },
-  safeArea: {
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    alignItems: 'center',
-    gap: Spacing.three,
-    paddingBottom: BottomTabInset + Spacing.three,
-    maxWidth: MaxContentWidth,
-  },
-  heroSection: {
     alignItems: 'center',
     justifyContent: 'center',
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    gap: Spacing.four,
+    padding: spacing.xl,
   },
-  title: {
-    textAlign: 'center',
+  brandWrapper: {
+    alignItems: 'center',
+    marginBottom: spacing.xl,
   },
-  code: {
-    textTransform: 'uppercase',
+  brandTitle: {
+    letterSpacing: 2,
+    fontWeight: '800',
   },
-  stepContainer: {
-    gap: Spacing.three,
-    alignSelf: 'stretch',
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.four,
-    borderRadius: Spacing.four,
+  tagline: {
+    marginTop: spacing.xs,
+    letterSpacing: 0.5,
+  },
+  loader: {
+    marginTop: spacing.md,
   },
 });
